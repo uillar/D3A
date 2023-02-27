@@ -6,4 +6,4 @@ This script is able to perform Differential Expression Analysis with DESeq2, edg
 	· Counts matrix (countData)
 	· Metadata file (metaData)
    
-Then, a Venn diaagram is done to compare the results from the three tools.
+Then, a Venn diagram is done to compare the results from the three tools.
