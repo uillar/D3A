@@ -1,5 +1,5 @@
 # D3A
-Differential Expression Analysisi x3 tools
+Differential Expression Analysis x3 tools
 
 This script is able to perform Differential Expression Analysis with DESeq2, edgeR and NOISeq with just two input files:
 
