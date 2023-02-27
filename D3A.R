@@ -9,7 +9,7 @@
  #########################
 
 #Set the working directory
-setwd("Z:/ALL/Survival/TARGET/proba_DEA_script")
+setwd("Z:/")
 
 #Open all necessary libraries
 library(DESeq2)
@@ -21,7 +21,7 @@ library(readr)
 library(readxl)
 library(VennDiagram)
 
-#Upload all necessary inputs and if NAs change to 0s
+#Upload all necessary inputs and if NAs in countData change to 0s
 countData <- read.delim("countData.csv", header = T, sep = ";")
 countData[is.na(countData)] <- 0 #Just if we have NAs in countData
 metaData <- read.delim("metaData.csv", header = T, sep = ";")
@@ -66,7 +66,6 @@ res_edgeR <- topTags(lrt, adjust.method = "fdr", n = n)
 res_edgeR <- data.frame(res_edgeR)
 write.table(res_edgeR, "res_edgeR.txt", sep = "\t", row.names = F)
 
-
 ##############
 ### DESeq2 ###
 ##############
@@ -78,7 +77,6 @@ dds <- DESeq(dds)
 #Perform DEA and save the raw results
 res_DESeq2 <- results(dds, contrast = c("Group_big_EFS", "B_Event", "B_NoEvent"), pAdjustMethod = "fdr")
 write.table(res_DESeq2, "res_DESeq2.txt", sep = "\t", row.names = T)
-
 
 ##############
 ### NOISeq ###
@@ -101,10 +99,9 @@ res_NOISeq = degenes(res_NOISeq, q = 0, M = NULL)
 res_NOISeq$FDR <- 1 - res_NOISeq$prob
 write.table(res_NOISeq, "res_NOISeq.txt", sep = "\t", row.names = T)
 
-
-#######################
-### Venn comparison ###
-#######################
+#####################
+### Venn diagrams ###
+#####################
 
 #Filter each result to get only the significant
 #edgeR
@@ -117,7 +114,7 @@ sig_res_DESeq2 <- res_DESeq2[which(res_DESeq2$Abslog2FC > 2 & res_DESeq2$padj < 
 sig_res_DESeq2 <- as.data.frame(sig_res_DESeq2)
 #NOISeq
 res_NOISeq$Abslog2FC = abs(res_NOISeq$log2FC)
-sig_res_NOISeq <- res_NOISeq[which(res_NOISeq$Abslog2FC > 2 & res_NOISeq$FDR < 0.2),]
+sig_res_NOISeq <- res_NOISeq[which(res_NOISeq$Abslog2FC > 2 & res_NOISeq$FDR < 0.01),]
 sig_res_NOISeq <- as.data.frame(sig_res_NOISeq)
 
 #Venn diagrams
