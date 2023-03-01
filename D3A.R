@@ -120,17 +120,11 @@ res_NOISeq$Abslog2FC = abs(res_NOISeq$log2FC)
 sig_res_NOISeq <- res_NOISeq[which(res_NOISeq$Abslog2FC > 2 & res_NOISeq$FDR < 0.01),]
 sig_res_NOISeq <- as.data.frame(sig_res_NOISeq)
 
-#Venn diagrams
+#Venn diagram input (significant gene names from each tool)
 sig_names_edgeR <- sig_res_edgeR[,1]
 sig_names_DESeq2 <- sig_res_DESeq2[,1]
 sig_names_NOISeq <- sig_res_NOISeq[,1]
 Venn_input <- list(sig_names_edgeR, sig_names_DESeq2, sig_names_NOISeq)
-tmp <- venn(Venn_input)
-Intersections <- attr(tmp, "intersections")
-
-#We can see the gene names of the Venn diagram intersections
-View(Intersections)
-Intersections[["B:D"]]
 
 #Nice Venn diagrams
 display_venn <- function(x, ...){
@@ -146,3 +140,7 @@ display_venn(
   lty = 'blank',
   cat.fontface = "bold",
   main = "Venn diagram for DEA result comparison")
+
+#Extract gene names from each intersection
+Intersections <- attr((venn(Venn_input)), "intersections")
+Intersections[["A:B:C"]]
