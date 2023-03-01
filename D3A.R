@@ -32,7 +32,7 @@ metaData <- read.delim("metaData.csv", header = T, sep = ";")
 
 #Prepare counts and metadata to create the edgeR object (dgList)
 Counts <- data.frame(countData, row.names = 1)
-sampleType <- metaData$EFS_Status
+sampleType <- metaData$Disease
 dgList <- DGEList(counts=Counts, genes=rownames(Counts), group = factor(sampleType))
 
 #Filtering of no/low expression genes
@@ -71,11 +71,13 @@ write.table(res_edgeR, "res_edgeR.txt", sep = "\t", row.names = F)
 ##############
 
 #Create DESeq2 object (dds) specifying the variable to compare the samples
-dds <- DESeqDataSetFromMatrix(countData = countData, colData = metaData, design = ~Group_big_EFS, tidy = T)
+dds <- DESeqDataSetFromMatrix(countData = countData, colData = metaData, design = ~Disease, tidy = T)
 dds <- DESeq(dds)
 
 #Perform DEA and save the raw results
-res_DESeq2 <- results(dds, contrast = c("Group_big_EFS", "B_Event", "B_NoEvent"), pAdjustMethod = "fdr")
+res_DESeq2 <- results(dds, contrast = c("Disease", "Case", "Control"), pAdjustMethod = "fdr")
+res_DESeq2 <- data.frame(res_DESeq2)
+res_DESeq2 <- tibble::rownames_to_column(res_DESeq2, "genes")
 write.table(res_DESeq2, "res_DESeq2.txt", sep = "\t", row.names = T)
 
 ##############
@@ -83,7 +85,7 @@ write.table(res_DESeq2, "res_DESeq2.txt", sep = "\t", row.names = T)
 ##############
 
 #Create NOISeq object (mydata) and normalize the data with TMM (Trimmed Mean of M-values) method
-samples <- data.frame(metaData$EFS_Status)
+samples <- data.frame(metaData$Disease)
 mydata <- readData(data = Counts, factors = samples)
 exprs_data <- assayData(mydata)$exprs
 myTMM = tmm(exprs_data)
@@ -94,9 +96,10 @@ threshold = quantile(meanexpression, 0.33)
 myTMM = myTMM[which(meanexpression >= threshold), ]
 
 #Specify the normalization method and the factor to perform the comparison between groups of
-res_NOISeq = noiseqbio(mydata, norm = "tmm", factor = "metaData.EFS_Status", filter = 0)
+res_NOISeq = noiseqbio(mydata, norm = "tmm", factor = "metaData.Disease", filter = 0)
 res_NOISeq = degenes(res_NOISeq, q = 0, M = NULL)
 res_NOISeq$FDR <- 1 - res_NOISeq$prob
+res_NOISeq <- tibble::rownames_to_column(res_NOISeq, "genes")
 write.table(res_NOISeq, "res_NOISeq.txt", sep = "\t", row.names = T)
 
 #####################
@@ -106,8 +109,8 @@ write.table(res_NOISeq, "res_NOISeq.txt", sep = "\t", row.names = T)
 #Filter each result to get only the significant
 #edgeR
 res_edgeR$AbslogFC = abs(res_edgeR$logFC)
-sig_res_egdeR <- res_edgeR[which(res_edgeR$AbslogFC > 2 & res_edgeR$FDR < 0.01),]
-sig_res_edgeR <- as.data.frame(sig_res_egdeR)
+sig_res_edgeR <- res_edgeR[which(res_edgeR$AbslogFC > 2 & res_edgeR$FDR < 0.01),]
+sig_res_edgeR <- as.data.frame(sig_res_edgeR)
 #DESeq2
 res_DESeq2$Abslog2FC = abs(res_DESeq2$log2FoldChange)
 sig_res_DESeq2 <- res_DESeq2[which(res_DESeq2$Abslog2FC > 2 & res_DESeq2$padj < 0.01),]
@@ -143,4 +146,3 @@ display_venn(
   lty = 'blank',
   cat.fontface = "bold",
   main = "Venn diagram for DEA result comparison")
-venn.diagram(Venn_input, filename = "venn-3-dimensions.png")
