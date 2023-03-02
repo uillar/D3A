@@ -8,4 +8,4 @@ This script is able to perform Differential Expression Analysis with DESeq2, edg
 	
 	Samples must be in the same order in both countData and metaData!
    
-Then, a Venn diagram is done to compare the results from the three tools.
+Then, a Venn diagram is done to compare the results obtained in the three tools.
